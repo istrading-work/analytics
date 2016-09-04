@@ -1,0 +1,2 @@
+class ACrmRefUser < ApplicationRecord
+end
