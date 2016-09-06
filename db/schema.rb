@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160906035124) do
+ActiveRecord::Schema.define(version: 20160906051826) do
 
   create_table "a_admin_users", force: :cascade do |t|
     t.string   "email",                  default: "", null: false
@@ -36,6 +36,27 @@ ActiveRecord::Schema.define(version: 20160906035124) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["code"], name: "index_a_crm_delivery_types_on_code", unique: true
+  end
+
+  create_table "a_crm_orders", id: false, force: :cascade do |t|
+    t.integer  "id",                                              null: false
+    t.string   "num"
+    t.decimal  "summ",                   precision: 15, scale: 2
+    t.datetime "dt"
+    t.datetime "dt_status_updated"
+    t.decimal  "delivery_cost",          precision: 15, scale: 2
+    t.decimal  "delivery_net_cost",      precision: 15, scale: 2
+    t.string   "a_crm_status_id"
+    t.string   "a_crm_shop_id"
+    t.string   "a_crm_delivery_type_id"
+    t.integer  "a_crm_user_id"
+    t.datetime "created_at",                                      null: false
+    t.datetime "updated_at",                                      null: false
+    t.index ["a_crm_delivery_type_id"], name: "index_a_crm_orders_on_a_crm_delivery_type_id"
+    t.index ["a_crm_shop_id"], name: "index_a_crm_orders_on_a_crm_shop_id"
+    t.index ["a_crm_status_id"], name: "index_a_crm_orders_on_a_crm_status_id"
+    t.index ["a_crm_user_id"], name: "index_a_crm_orders_on_a_crm_user_id"
+    t.index ["id"], name: "index_a_crm_orders_on_id", unique: true
   end
 
   create_table "a_crm_shops", id: false, force: :cascade do |t|
