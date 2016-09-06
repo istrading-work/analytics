@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160905214518) do
+ActiveRecord::Schema.define(version: 20160906035124) do
 
   create_table "a_admin_users", force: :cascade do |t|
     t.string   "email",                  default: "", null: false
@@ -30,7 +30,7 @@ ActiveRecord::Schema.define(version: 20160905214518) do
   end
 
   create_table "a_crm_delivery_types", id: false, force: :cascade do |t|
-    t.string   "code"
+    t.string   "code",       null: false
     t.string   "name"
     t.boolean  "is_active"
     t.datetime "created_at", null: false
@@ -39,7 +39,7 @@ ActiveRecord::Schema.define(version: 20160905214518) do
   end
 
   create_table "a_crm_shops", id: false, force: :cascade do |t|
-    t.string   "code"
+    t.string   "code",       null: false
     t.string   "name"
     t.boolean  "is_active"
     t.datetime "created_at", null: false
@@ -68,7 +68,7 @@ ActiveRecord::Schema.define(version: 20160905214518) do
   end
 
   create_table "a_crm_users", id: false, force: :cascade do |t|
-    t.integer  "id"
+    t.integer  "id",         null: false
     t.string   "first_name"
     t.string   "last_name"
     t.string   "email"
