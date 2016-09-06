@@ -269,4 +269,10 @@ ActiveAdmin.setup do |config|
   # of those filters by default here.
   #
   # config.include_default_association_filters = true
+  config.namespace :admin do |admin|
+    admin.build_menu do |menu|
+      menu.add label: 'CRM Data', priority: 2
+    end
+  end
+  
 end

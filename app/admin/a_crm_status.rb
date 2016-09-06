@@ -1,5 +1,7 @@
 ActiveAdmin.register ACrmStatus do
 
+  menu parent: "CRM Data"
+
   config.batch_actions = false
   actions :index, :show
 
