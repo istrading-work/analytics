@@ -27,6 +27,13 @@ GIT
       railties (>= 3.2, < 5.1)
       responders
 
+GIT
+  remote: git://github.com/istrading-work/api-client-ruby.git
+  revision: 096bdeca10fce50cd840e31123f4cc270978014a
+  branch: api4
+  specs:
+    retailcrm (1.1.2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -172,6 +179,7 @@ GEM
       mini_portile2 (~> 2.1.0)
       pkg-config (~> 1.1.7)
     orm_adapter (0.5.0)
+    pivot_table (1.0.0)
     pkg-config (1.1.7)
     polyamorous (1.3.1)
       activerecord (>= 3.0)
@@ -238,6 +246,7 @@ GEM
       sprockets (>= 2.8, < 4.0)
       sprockets-rails (>= 2.0, < 4.0)
       tilt (>= 1.1, < 3)
+    seedbank (0.4.0)
     shoulda-matchers (3.1.1)
       activesupport (>= 4.0.0)
     simple_form (3.3.1)
@@ -276,6 +285,7 @@ GEM
       thread_safe (~> 0.1)
     uglifier (3.0.2)
       execjs (>= 0.3.0, < 3)
+    underscore-rails (1.8.3)
     warden (1.2.6)
       rack (>= 1.0)
     web-console (3.3.1)
@@ -308,10 +318,13 @@ DEPENDENCIES
   jquery-rails
   listen (~> 3.0.5)
   mysql2 (>= 0.3.18, < 0.5)
+  pivot_table
   puma (~> 3.0)
   rails (~> 5.0.0, >= 5.0.0.1)
+  retailcrm!
   rspec-rails
   sass-rails (~> 5.0)
+  seedbank
   shoulda-matchers
   simple_form
   slim-rails
@@ -321,6 +334,7 @@ DEPENDENCIES
   turbolinks (~> 5)
   tzinfo-data
   uglifier (>= 1.3.0)
+  underscore-rails
   web-console
 
 BUNDLED WITH

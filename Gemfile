@@ -43,6 +43,11 @@ gem 'activeadmin', github: 'activeadmin'
 gem 'annotate'
 gem 'hirb'
 
+gem 'retailcrm', github: 'istrading-work/api-client-ruby', :branch => 'api4'
+gem "seedbank"
+gem "pivot_table"
+gem 'underscore-rails'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri
