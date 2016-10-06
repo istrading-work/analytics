@@ -15,3 +15,29 @@
 // For example, to change the default status-tag color:
 //
 //   .status_tag { background: #6090DB; }
+@import "pvt-table";
+@import "morris.core";
+@import "chosen/chosen.min";
+@import "jquery.dataTables.min";
+@import "dataTables.jqueryui.min";
+
+
+.output { 
+  background: white;  
+}
+
+table.dataTable tbody tr.group {
+  background: rgb(154,160,165);
+  color: white;
+  text_align: right;
+}
+
+table.dataTable tbody tr.group:hover {
+  background: rgb(134,140,145);
+  color: white;
+}
+
+#curr, #prev {
+  cursor: pointer;
+  border-bottom: 1px dotted black;
+}
