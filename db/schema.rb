@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160906051826) do
+ActiveRecord::Schema.define(version: 20160925095908) do
 
   create_table "a_admin_users", force: :cascade do |t|
     t.string   "email",                  default: "", null: false
@@ -36,6 +36,17 @@ ActiveRecord::Schema.define(version: 20160906051826) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["code"], name: "index_a_crm_delivery_types_on_code", unique: true
+  end
+
+  create_table "a_crm_histories", force: :cascade do |t|
+    t.datetime "dt"
+    t.integer  "a_crm_order_id"
+    t.string   "a_crm_status_id"
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+    t.datetime "last_updated_at"
+    t.index ["a_crm_order_id"], name: "index_a_crm_histories_on_a_crm_order_id"
+    t.index ["a_crm_status_id"], name: "index_a_crm_histories_on_a_crm_status_id"
   end
 
   create_table "a_crm_orders", id: false, force: :cascade do |t|
@@ -98,6 +109,18 @@ ActiveRecord::Schema.define(version: 20160906051826) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["id"], name: "index_a_crm_users_on_id", unique: true
+  end
+
+  create_table "a_status_groups", force: :cascade do |t|
+    t.string "name", null: false
+    t.index ["name"], name: "index_a_status_groups_on_name", unique: true
+  end
+
+  create_table "a_status_links", force: :cascade do |t|
+    t.string  "a_crm_status_id",   null: false
+    t.integer "a_status_group_id", null: false
+    t.index ["a_crm_status_id"], name: "index_a_status_links_on_a_crm_status_id"
+    t.index ["a_status_group_id"], name: "index_a_status_links_on_a_status_group_id"
   end
 
   create_table "active_admin_comments", force: :cascade do |t|

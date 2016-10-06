@@ -272,6 +272,8 @@ ActiveAdmin.setup do |config|
   config.namespace :admin do |admin|
     admin.build_menu do |menu|
       menu.add label: 'CRM Data', priority: 2
+      menu.add label: 'Analytics Data', priority: 3
+      menu.add label: 'Reports', priority: 4
     end
   end
   
