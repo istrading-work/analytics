@@ -5,4 +5,7 @@ ActiveAdmin.register ACrmDeliveryType do
   config.batch_actions = false
   actions :index, :show
 
+  scope :all
+  scope :active, default: true
+  
 end

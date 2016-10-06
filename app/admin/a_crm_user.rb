@@ -5,4 +5,8 @@ ActiveAdmin.register ACrmUser do
   config.batch_actions = false
   actions :index, :show
 
+  scope :all
+  scope :active
+  scope :active_managers, default: true
+  
 end
