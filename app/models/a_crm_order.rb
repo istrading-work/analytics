@@ -32,7 +32,6 @@ class ACrmOrder < ApplicationRecord
    .joins(:a_crm_shop)
    .joins(:a_crm_user)
    .select('date(a_crm_orders.dt) as dt, a_status_groups.name as status, a_crm_shops.name as shop, a_crm_users.last_name as manager, count(*) as total_count, sum(a_crm_orders.summ-delivery_cost) as total_sum')
-   .where('date(a_crm_orders.dt)>="2016-01-01" and date(a_crm_orders.dt)<="2016-08-31"' )
    .group('date(a_crm_orders.dt)','a_crm_users.last_name','a_status_groups.name', 'a_crm_shops.name' )
    .order('date(a_crm_orders.dt) desc','a_status_groups.id asc' )
   }
@@ -51,7 +50,7 @@ class ACrmOrder < ApplicationRecord
      sum(case when a_status_groups.name="Холд" then 1 else 0 end) as hold_count, 
      sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end)/sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) as ch'
     )
-   .where("a_crm_users.is_active='t' #{p_date1} #{p_date2} #{p_managers} #{p_shops}"  )
+   .where("a_crm_users.is_active='t' and a_crm_users.is_manager='t' #{p_date1} #{p_date2} #{p_managers} #{p_shops}"  )
    .group('date(a_crm_orders.dt)', 'shop', 'manager' )
    .order('date(a_crm_orders.dt)', 'manager', 'shop' )
   }
@@ -70,7 +69,7 @@ class ACrmOrder < ApplicationRecord
      case when sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) == 0 then 0 else round((sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end)+0.0)/sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end),0) end as ch,
      sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end) as approve_sum'
     )
-   .where("a_crm_users.is_active='t' #{p_date1} #{p_date2} #{p_managers} #{p_shops}"  )
+   .where("a_crm_users.is_active='t' and a_crm_users.is_manager='t' #{p_date1} #{p_date2} #{p_managers} #{p_shops}"  )
    .group('shop', 'manager' )
    .order('manager', 'shop' )
   }  
