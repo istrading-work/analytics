@@ -116,7 +116,7 @@ class SyncCrm
         @selected_params.each do |k,v|
           vs = v.nil? ? []: v.split('|')
           if    vs.size==1 then params[k] = item.has_key?(v) ? item[v] : nil
-          elsif vs.size==2 then params[k] = (item.has_key?(vs[0]) && item[vs[0]].has_key?(vs[1])) ? item[vs[0]][vs[1]] : nil
+          elsif vs.size==2 then params[k] = (item.has_key?(vs[0]) && item[vs[0]] && item[vs[0]].has_key?(vs[1])) ? item[vs[0]][vs[1]] : nil
           else  params[k] = nil
           end
         end
