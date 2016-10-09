@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160925095908) do
+ActiveRecord::Schema.define(version: 20161008184505) do
 
   create_table "a_admin_users", force: :cascade do |t|
     t.string   "email",                  default: "", null: false
@@ -121,6 +121,21 @@ ActiveRecord::Schema.define(version: 20160925095908) do
     t.integer "a_status_group_id", null: false
     t.index ["a_crm_status_id"], name: "index_a_status_links_on_a_crm_status_id"
     t.index ["a_status_group_id"], name: "index_a_status_links_on_a_status_group_id"
+  end
+
+  create_table "a_syncs", force: :cascade do |t|
+    t.string   "kind"
+    t.integer  "page"
+    t.integer  "total_pages"
+    t.boolean  "status"
+    t.integer  "a_crm_order_id"
+    t.integer  "order_index"
+    t.integer  "total_orders"
+    t.integer  "total_changed"
+    t.boolean  "done"
+    t.datetime "created_at",     null: false
+    t.datetime "updated_at",     null: false
+    t.index ["a_crm_order_id"], name: "index_a_syncs_on_a_crm_order_id"
   end
 
   create_table "active_admin_comments", force: :cascade do |t|
