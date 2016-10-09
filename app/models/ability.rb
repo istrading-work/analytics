@@ -28,5 +28,12 @@ class Ability
     #
     # See the wiki for details:
     # https://github.com/CanCanCommunity/cancancan/wiki/Defining-Abilities
+    if user.admin?
+      can :manage, :all
+    else
+      can :manage, AAdminUser, :id => user.id
+      can :manage, ActiveAdmin::Page, :name => "Dashboard"
+      can :manage, ActiveAdmin::Page, :name => "Salary"
+    end
   end
 end

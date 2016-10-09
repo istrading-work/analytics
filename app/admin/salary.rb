@@ -17,9 +17,18 @@ ActiveAdmin.register_page "Salary" do
           end        
         end
         column span:2 do
-          select name:"managers", 'data-placeholder':"Менеджеры...", style:"width:350px;", multiple:true, class:"chosen-select" do
-            ACrmUser.active_managers.each do |manager|
-              option value:"'#{manager.id}'" do
+          if current_a_admin_user.admin?
+            select name:"managers", 'data-placeholder':"Менеджеры...", style:"width:350px;", multiple:true, class:"chosen-select" do
+              ACrmUser.active_managers.each do |manager|
+                option value:"'#{manager.id}'" do
+                  manager.name
+                end          
+              end
+            end
+          else
+            select name:"managers", 'data-placeholder':"Менеджеры...", style:"width:350px;", multiple:true, class:"chosen-select", disabled:true do
+              manager = ACrmUser.find_by(email: current_a_admin_user.email)
+              option value:"'#{manager.id}'", selected:true do
                 manager.name
               end          
             end
@@ -42,9 +51,13 @@ ActiveAdmin.register_page "Salary" do
     panel "Свод по менеджерам" do
       table id:'output1', class:"compact"
     end
-    panel "Свод по магазинам" do
-      table id:'output2', class:"compact"
+    
+    if current_a_admin_user.admin?
+      panel "Свод по магазинам" do
+        table id:'output2', class:"compact"
+      end
     end
+    
     panel "Детали" do
       table id:'output' , class:"compact"
     end
