@@ -20,6 +20,16 @@ ActiveAdmin.register ACrmOrder do
     actions
   end
 
+  filter :num
+  filter :dt, label: 'Дата', as: :date_range
+  filter :dt_status_updated, label: 'Дата изменения статуса', as: :date_range
+  filter :a_status_group
+  filter :a_crm_status
+  filter :a_crm_shop
+  filter :a_crm_user
+  filter :summ
+  
+  
   show do
     panel "History" do
       table_for a_crm_order.a_crm_history do

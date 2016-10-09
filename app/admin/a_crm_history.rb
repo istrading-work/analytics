@@ -14,6 +14,9 @@ ActiveAdmin.register ACrmHistory do
     actions
   end
 
+  filter :a_crm_order_id
+  filter :a_crm_status, :as => :select
+  
   controller do
     def scoped_collection
       super.includes :a_crm_status
