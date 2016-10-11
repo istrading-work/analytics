@@ -76,8 +76,8 @@ ActiveAdmin.register_page "Salary" do
 
   controller do
     def set_filter
-      @p_date1 = params[:date1].to_s==='' ? "" : "and a_crm_orders.dt>='#{params[:date1]}'"
-      @p_date2 = params[:date2].to_s==='' ? "" : "and a_crm_orders.dt<='#{params[:date2]}'"
+      @p_date1 = params[:date1].to_s==='' ? "" : "and date(a_crm_orders.dt)>='#{DateTime.parse(params[:date1]).utc.to_date}'"
+      @p_date2 = params[:date2].to_s==='' ? "" : "and date(a_crm_orders.dt)<='#{DateTime.parse(params[:date2]).utc.to_date}'"
       @p_managers = params[:managers]==='null' ? "" : "and a_crm_orders.a_crm_user_id in (#{params[:managers]})"
       @p_shops = params[:shops]==='null' ? "" : "and a_crm_orders.a_crm_shop_id in (#{params[:shops]})"
     end

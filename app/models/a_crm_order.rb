@@ -46,6 +46,8 @@ class ACrmOrder < ApplicationRecord
      a_crm_shops.name as shop,
      count(*) as total_count, 
      sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) as approve_count,
+     sum(case when a_status_groups.name in ("Выкуплен","Оплачен") then 1 else 0 end) as buy_count,
+     sum(case when a_status_groups.name in ("Возврат") then 1 else 0 end) as ret_count,
      sum(case when a_status_groups.name="Отмена" then 1 else 0 end) as cancel_count, 
      sum(case when a_status_groups.name="Холд" then 1 else 0 end) as hold_count, 
      sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end)/sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) as ch'
@@ -64,6 +66,8 @@ class ACrmOrder < ApplicationRecord
      a_crm_shops.name as shop,
      count(*) as total_count,
      sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) as approve_count,
+     sum(case when a_status_groups.name in ("Выкуплен","Оплачен") then 1 else 0 end) as buy_count,
+     sum(case when a_status_groups.name in ("Возврат") then 1 else 0 end) as ret_count,
      sum(case when a_status_groups.name="Отмена" then 1 else 0 end) as cancel_count, 
      sum(case when a_status_groups.name="Холд" then 1 else 0 end) as hold_count,
      case when sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) == 0 then 0 else round((sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end)+0.0)/sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end),0) end as ch,
