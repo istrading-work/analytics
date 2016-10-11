@@ -41,7 +41,7 @@ class ACrmOrder < ApplicationRecord
    .joins(:a_crm_shop)
    .joins(:a_crm_user)
    .select(
-     'strftime("%d/%m", a_crm_orders.dt) as dt1,
+     'date(dt) as dt1,
      a_crm_users.last_name || " " || a_crm_users.first_name  as manager,
      a_crm_shops.name as shop,
      count(*) as total_count, 
@@ -50,7 +50,8 @@ class ACrmOrder < ApplicationRecord
      sum(case when a_status_groups.name in ("Возврат") then 1 else 0 end) as ret_count,
      sum(case when a_status_groups.name="Отмена" then 1 else 0 end) as cancel_count, 
      sum(case when a_status_groups.name="Холд" then 1 else 0 end) as hold_count, 
-     sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end)/sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) as ch'
+     case when sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) == 0 then 0 else round((sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end)+0.0)/sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end),0) end as ch,
+     sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end) as approve_sum'
     )
    .where("a_crm_users.is_active='t' and a_crm_users.is_manager='t' #{p_date1} #{p_date2} #{p_managers} #{p_shops}"  )
    .group('date(a_crm_orders.dt)', 'shop', 'manager' )

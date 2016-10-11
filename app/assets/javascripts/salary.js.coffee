@@ -1,11 +1,12 @@
 calc = (item) ->
   ap = 100*item.approve_count/item.total_count
   bp = 0
-  if item.approve_count != 0 then (bp = 100*item.buy_count/item.approve_count)
   rp = 0
-  if item.approve_count != 0 then (rp = 100*item.ret_count/item.approve_count)
   brp = 0
-  if item.approve_count != 0 then (brp = 100*(item.buy_count+item.ret_count)/item.approve_count)
+  if item.approve_count != 0
+    bp = 100*item.buy_count/item.approve_count
+    rp = 100*item.ret_count/item.approve_count
+    brp = 100*(item.buy_count+item.ret_count)/item.approve_count
   z = 0
   if item.shop=='Бриджи Hot Shapers'
     z = parseFloat((25.485272*Math.exp(0.145843*((item.ch-2250)/100))).toFixed(2))*ap/70
@@ -20,258 +21,106 @@ calc = (item) ->
   if z>250
     z = 250
   z_total = z*item.approve_count     
-  _.extend(item, { ap:Math.round(ap), bp:Math.round(bp), rp:Math.round(rp), brp:Math.round(brp), z:Math.round(z), z_total:Math.round(z_total) })
+  _.extend(item, { ap:Math.round(ap), bp:Math.round(bp), rp:Math.round(rp), brp:Math.round(brp), z: Math.round(z), z_total: Math.round(z_total) })
+  return
+  
+calc_t = (data, group, v) ->
+  sum = {}
+  ['z_total',  'total_count', 'approve_count', 'buy_count', 'ret_count', 'hold_count', 'cancel_count', 'approve_sum'].forEach (item) ->
+    sum[item] = _.reduce(_.pluck(data, item), ((memo, s) ->
+      memo + s
+    ), 0)
+    return
+  sum['ap'] = Math.round(100 * sum['approve_count'] / sum['total_count'])
+  sum['ch'] = 0
+  sum['bp'] = 0
+  sum['rp'] = 0
+  sum['brp'] = 0
+  sum['z'] = 0
+  if sum['approve_count'] != 0
+    sum['ch'] = Math.round(sum['approve_sum'] / sum['approve_count'])
+    sum['bp'] = Math.round(100 * sum['buy_count'] / sum['approve_count'])
+    sum['rp'] = Math.round(100 * sum['ret_count'] / sum['approve_count'])
+    sum['brp'] = Math.round(100 * (sum['buy_count'] + sum['ret_count']) / sum['approve_count'])  
+    sum['z'] = Math.round(sum['z_total'] / sum['approve_count'])
+  gs = '<td>'
+  if v==1 then (gs='<td colspan="2">')
+  return '<tr class="group">'+ gs + group + '</td><td>' + sum['total_count'] + '</td><td>' + sum['approve_count'] + '</td><td>' + sum['buy_count'] + '</td><td>' + sum['ret_count'] + '</td><td>' + sum['cancel_count'] + '</td><td>' + sum['hold_count'] + '</td><td>' + sum['ch'] + '</td><td>'+ sum['ap'] + '</td><td>'+ sum['bp'] + '</td><td>' + sum['rp'] + '</td><td>' + sum['brp'] + '</td><td>' + sum['z'] + '</td><td>' + sum['z_total'] + '</td></tr>'
+
+columns = [
+  { title: 'Дата' }
+  { title: 'Менеджер' }
+  { title: 'Магазин' }
+  { title: 'Всего' }
+  { title: 'Апрув' }
+  { title: 'Выкуплен' }
+  { title: 'Возврат' }
+  { title: 'Отмена' }
+  { title: 'Холд' }
+  { title: 'Ср.чек' }
+  { title: 'Апрув(%)' }
+  { title: 'Выкуплен(%)' }
+  { title: 'Возврат(%)' }
+  { title: 'Выполнен(%)' }
+  { title: 'Опл/заказ' }
+  { title: 'Оплата' }
+]
+
+render_tbl = (data, t, it, v) ->
+  $(it.el).DataTable
+    destroy: true
+    data: data
+    displayLength: 100
+    "columnDefs": [
+      { "visible": false, "targets": it.group_col }
+    ],
+    columns: it.columns
+    order: [[ it.group_col, "asc" ], [ 14, "desc" ]]
+    drawCallback: (settings) ->
+      api = @api()
+      rows = api.rows().nodes()
+      $(rows).eq(0).before calc_t(t, 'Итого', v)
+      last = null
+      api.column(it.group_col).data().each (group, i) ->
+        if last != group
+          tt = []
+          if it.gr == 'manager'
+            tt = _.where(t, { manager : group })
+          else if it.gr == 'shop'
+            tt = _.where(t, { shop : group })
+          else
+            tt = _.where(t, { dt1 : group })
+          $(rows).eq(i).before calc_t(tt, group, v) 
+          last = group
+      return
+  return
   
 render_all = ->
-  $.ajax(url: "salary/ex2"+"?date1="+$('input[name=date1]').val()+"&date2="+$('input[name=date2]').val()+"&managers="+$('select[name=managers]').val()+"&shops="+$('select[name=shops]').val()).done (data) ->
+  url_p = "?date1="+$('input[name=date1]').val()+
+          "&date2="+$('input[name=date2]').val()+
+          "&managers="+$('select[name=managers]').val()+
+          "&shops="+$('select[name=shops]').val()
+  $.ajax(url: "salary/ex2" + url_p).done (data) ->
     t = data
     $.map data, (item) ->
       calc item
-
+    data = _.map data, (item) ->
+      _.values(_.omit(item, 'id', 'approve_sum'))
+    columns_ = _.rest(columns)
+    [{el: '#output1', group_col: 0, columns: columns_, gr: 'manager'}, {el: '#output2', group_col: 1, columns: columns_, gr: 'shop'}].forEach (it) ->
+      render_tbl(data, t, it, 0)
+    return
+  
+  $.ajax(url: "salary/ex" + url_p).done (data) ->
+    t = data
+    $.map data, (item) ->
+      calc item
     data = _.map data, (item) ->
       _.values(_.omit(item, 'id', 'approve_sum'))
  
-    $('#output1').DataTable
-      destroy: true
-      data: data
-      'displayLength': 100
-      columnDefs: [
-        { "visible": false, "targets": 0 }
-      ],
-      columns: [
-        { title: 'Менеджер' }
-        { title: 'Магазин' }
-        { title: 'Всего' }
-        { title: 'Апрув' }
-        { title: 'Выкуплен' }
-        { title: 'Возврат' }
-        { title: 'Отмена' }
-        { title: 'Холд' }
-        { title: 'Ср.чек' }
-        { title: 'Апрув(%)' }
-        { title: 'Выкуплен(%)' }
-        { title: 'Возврат(%)' }
-        { title: 'Выполнен(%)' }
-        { title: 'Оплата/заказ' }
-        { title: 'Оплата' }
-      ]
-      "order": [[ 0, "asc" ], [ 13, "desc" ]]
-      "drawCallback": (settings) ->
-        api = @api()
-        rows = api.rows(page: 'current').nodes()
-        sum = _.reduce(_.pluck(t, 'z_total'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_t = _.reduce(_.pluck(t, 'total_count'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_a = _.reduce(_.pluck(t, 'approve_count'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_b = _.reduce(_.pluck(t, 'buy_count'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_r = _.reduce(_.pluck(t, 'ret_count'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_h = _.reduce(_.pluck(t, 'hold_count'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_c = _.reduce(_.pluck(t, 'cancel_count'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_s = _.reduce(_.pluck(t, 'approve_sum'), ((memo, s) ->
-          memo + s
-        ), 0)
-        ch = Math.round(sum_s / sum_a)
-        ap = Math.round(100 * sum_a / sum_t)
-        bp = 0
-        if sum_a !=0 then (bp = Math.round(100 * sum_b / sum_a))
-        rp = 0
-        if sum_a !=0 then (rp = Math.round(100 * sum_r / sum_a))
-        brp = 0
-        if sum_a !=0 then (brp = Math.round(100 * (sum_b+sum_r) / sum_a))
-        z = Math.round(sum / sum_a)
-        $(rows).eq(0).before '<tr class="group"><td>' + 'Итого' + '</td><td>' + sum_t + '</td><td>' + sum_a + '</td><td>' + sum_b + '</td><td>' + sum_r + '</td><td>' + sum_c + '</td><td>' + sum_h + '</td><td>' + ch + '</td><td>'+ ap + '</td><td>'+ bp + '</td><td>' + rp + '</td><td>' + brp + '</td><td>' + z + '</td><td>' + sum + '</td></tr>'
-        last = null
-        api.column(0, page: 'current').data().each (group, i) ->
-          if last != group
-            tt = _.where(t, {manager: group})
-            sum = _.reduce(_.pluck(tt, 'z_total'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_t = _.reduce(_.pluck(tt, 'total_count'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_a = _.reduce(_.pluck(tt, 'approve_count'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_b = _.reduce(_.pluck(tt, 'buy_count'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_r = _.reduce(_.pluck(tt, 'ret_count'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_h = _.reduce(_.pluck(tt, 'hold_count'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_c = _.reduce(_.pluck(tt, 'cancel_count'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_s = _.reduce(_.pluck(tt, 'approve_sum'), ((memo, s) ->
-              memo + s
-            ), 0)
-            ch = Math.round(sum_s / sum_a)
-            ap = Math.round(100 * sum_a / sum_t)
-            bp = 0
-            if sum_a !=0 then (bp = Math.round(100 * sum_b / sum_a))
-            rp = 0
-            if sum_a !=0 then (rp = Math.round(100 * sum_r / sum_a))
-            brp = 0 
-            if sum_a !=0 then (brp = Math.round(100 * (sum_b+sum_r) / sum_a))
-            z = Math.round(sum / sum_a)
-            $(rows).eq(i).before '<tr class="group"><td>' + group + '</td><td>' + sum_t + '</td><td>' + sum_a + '</td><td>' + sum_b + '</td><td>' + sum_r + '</td><td>' + sum_c + '</td><td>' + sum_h + '</td><td>' + ch + '</td><td>' + ap + '</td><td>' + bp + '</td><td>' + rp + '</td><td>' + brp + '</td><td>' + z + '</td><td>' + sum + '</td></tr>'
-            last = group
-          return
-        return
+    render_tbl(data, t, {el: '#output', group_col: 0, columns: columns, gr: 'date'}, 1)
+    return
 
-    $('#output2').DataTable
-      destroy: true
-      data: data
-      'displayLength': 100
-      columnDefs: [
-        { "visible": false, "targets": 1 }
-      ],
-      columns: [
-        { title: 'Менеджер' }
-        { title: 'Магазин' }
-        { title: 'Всего' }
-        { title: 'Апрув' }
-        { title: 'Выкуплен' }
-        { title: 'Возврат' }
-        { title: 'Отмена' }
-        { title: 'Холд' }
-        { title: 'Ср.чек' }
-        { title: 'Апрув(%)' }
-        { title: 'Выкуплен(%)' }
-        { title: 'Возврат(%)' }
-        { title: 'Выполнен(%)' }
-        { title: 'Оплата/заказ' }
-        { title: 'Оплата' }
-      ]
-      "order": [[ 1, "asc" ], [ 13, "desc" ]]
-      "drawCallback": (settings) ->
-        api = @api()
-        rows = api.rows(page: 'current').nodes()
-        sum = _.reduce(_.pluck(t, 'z_total'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_t = _.reduce(_.pluck(t, 'total_count'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_a = _.reduce(_.pluck(t, 'approve_count'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_b = _.reduce(_.pluck(t, 'buy_count'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_r = _.reduce(_.pluck(t, 'ret_count'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_h = _.reduce(_.pluck(t, 'hold_count'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_c = _.reduce(_.pluck(t, 'cancel_count'), ((memo, s) ->
-          memo + s
-        ), 0)
-        sum_s = _.reduce(_.pluck(t, 'approve_sum'), ((memo, s) ->
-          memo + s
-        ), 0)
-        ch = Math.round(sum_s / sum_a)
-        ap = Math.round(100 * sum_a / sum_t)
-        bp = 0
-        if sum_a !=0 then (bp = Math.round(100 * sum_b / sum_a))
-        rp = 0
-        if sum_a !=0 then (rp = Math.round(100 * sum_r / sum_a))
-        brp = 0
-        if sum_a !=0 then (brp = Math.round(100 * (sum_b+sum_r) / sum_a))
-        z = Math.round(sum / sum_a)
-        $(rows).eq(0).before '<tr class="group"><td>' + 'Итого' + '</td><td>' + sum_t + '</td><td>' + sum_a + '</td><td>' + sum_b + '</td><td>' + sum_r + '</td><td>' + sum_c + '</td><td>' + sum_h + '</td><td>' + ch + '</td><td>' + ap + '</td><td>' + bp + '</td><td>' + rp + '</td><td>' + brp + '</td><td>' + z + '</td><td>' + sum + '</td></tr>'
-        last = null
-        api.column(1, page: 'current').data().each (group, i) ->
-          if last != group
-            tt = _.where(t, {shop: group})
-            sum = _.reduce(_.pluck(tt, 'z_total'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_t = _.reduce(_.pluck(tt, 'total_count'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_a = _.reduce(_.pluck(tt, 'approve_count'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_b = _.reduce(_.pluck(tt, 'buy_count'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_r = _.reduce(_.pluck(tt, 'ret_count'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_h = _.reduce(_.pluck(tt, 'hold_count'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_c = _.reduce(_.pluck(tt, 'cancel_count'), ((memo, s) ->
-              memo + s
-            ), 0)
-            sum_s = _.reduce(_.pluck(tt, 'approve_sum'), ((memo, s) ->
-              memo + s
-            ), 0)
-            ch = Math.round(sum_s / sum_a)
-            ap = Math.round(100 * sum_a / sum_t)
-            bp = 0
-            if sum_a !=0 then (bp = Math.round(100 * sum_b / sum_a))
-            rp = 0
-            if sum_a !=0 then (rp = Math.round(100 * sum_r / sum_a))
-            brp = 0
-            if sum_a !=0 then (brp = Math.round(100 * (sum_b+sum_r) / sum_a))
-            z = Math.round(sum / sum_a)
-            $(rows).eq(i).before '<tr class="group"><td>' + group + '</td><td>' + sum_t + '</td><td>' + sum_a + '</td><td>' + sum_b + '</td><td>' + sum_r + '</td><td>' + sum_c + '</td><td>' + sum_h + '</td><td>' + ch + '</td><td>' + ap + '</td><td>' + bp + '</td><td>' + rp + '</td><td>' + brp + '</td><td>' + z + '</td><td>' + sum + '</td></tr>'
-            last = group
-          return
-        return
-    
-  $.ajax(url: "salary/ex"+"?date1="+$('input[name=date1]').val()+"&date2="+$('input[name=date2]').val()+"&managers="+$('select[name=managers]').val()+"&shops="+$('select[name=shops]').val()).done (data) ->
-    $.map data, (item) ->
-      calc item
-      
-    data = _.map data, (item) ->
-      _.values(_.omit(item, 'id'))
- 
-    $('#output').DataTable
-      destroy: true
-      data: data
-      'displayLength': 25
-      columns: [
-        { title: 'Дата' }
-        { title: 'Менеджер' }
-        { title: 'Магазин' }
-        { title: 'Всего' }
-        { title: 'Апрув' }
-        { title: 'Выкуплен' }
-        { title: 'Возврат' }
-        { title: 'Отмена' }
-        { title: 'Холд' }
-        { title: 'Ср.чек' }
-        { title: 'Апрув(%)' }
-        { title: 'Выкуплен(%)' }
-        { title: 'Возврат(%)' }
-        { title: 'Выполнен(%)' }
-        { title: 'Оплата/заказ' }
-        { title: 'Оплата' }
-      ]
-      "order": [[ 0, "asc" ],[ 1, "asc" ],[ 2, "asc" ]]
-      
-    $('.spinner').hide()
-    
   return
 
 $('.index.admin_salary').ready ->
