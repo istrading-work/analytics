@@ -35,45 +35,55 @@ class ACrmOrder < ApplicationRecord
    .group('date(a_crm_orders.dt)','a_crm_users.last_name','a_status_groups.name', 'a_crm_shops.name' )
    .order('date(a_crm_orders.dt) desc','a_status_groups.id asc' )
   }
-  
-  scope :report3, -> (p_date1, p_date2, p_managers, p_shops ) {
+
+query = <<-SQL 
+  a_crm_users.last_name || " " || a_crm_users.first_name  as manager,
+  a_crm_shops.name as shop,
+  count(*) as total_count, 
+  sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) as approve_count,
+  sum(case when a_status_groups.name in ("Выкуплен","Оплачен") then 1 else 0 end) as buy_count,
+  sum(case when a_status_groups.name in ("Возврат") then 1 else 0 end) as ret_count,
+  sum(case when a_status_groups.name="Отмена" then 1 else 0 end) as cancel_count, 
+  sum(case when a_status_groups.name="Холд" then 1 else 0 end) as hold_count, 
+  case when sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) == 0 then 0 else round((sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end)+0.0)/sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end),0) end as ch,
+  sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end) as approve_sum
+SQL
+
+  scope :salary_report_day, -> (p_date1, p_date2, p_managers, p_shops ) {
     joins(:a_status_group)
    .joins(:a_crm_shop)
    .joins(:a_crm_user)
-   .select(
-     'date(dt) as dt1,
-     a_crm_users.last_name || " " || a_crm_users.first_name  as manager,
-     a_crm_shops.name as shop,
-     count(*) as total_count, 
-     sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) as approve_count,
-     sum(case when a_status_groups.name in ("Выкуплен","Оплачен") then 1 else 0 end) as buy_count,
-     sum(case when a_status_groups.name in ("Возврат") then 1 else 0 end) as ret_count,
-     sum(case when a_status_groups.name="Отмена" then 1 else 0 end) as cancel_count, 
-     sum(case when a_status_groups.name="Холд" then 1 else 0 end) as hold_count, 
-     case when sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) == 0 then 0 else round((sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end)+0.0)/sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end),0) end as ch,
-     sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end) as approve_sum'
-    )
+   .select('date(dt) as dt1,' + query)
    .where("a_crm_users.is_active='t' and a_crm_users.is_manager='t' #{p_date1} #{p_date2} #{p_managers} #{p_shops}"  )
-   .group('date(a_crm_orders.dt)', 'shop', 'manager' )
-   .order('date(a_crm_orders.dt)', 'manager', 'shop' )
+   .group('dt1', 'shop', 'manager' )
+   .order('dt1', 'manager', 'shop' )
   }
 
-  scope :report4, -> (p_date1, p_date2, p_managers, p_shops ) {
+  scope :salary_report_week, -> (p_date1, p_date2, p_managers, p_shops ) {
     joins(:a_status_group)
    .joins(:a_crm_shop)
    .joins(:a_crm_user)
-   .select(
-     'a_crm_users.last_name || " " || a_crm_users.first_name as manager,
-     a_crm_shops.name as shop,
-     count(*) as total_count,
-     sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) as approve_count,
-     sum(case when a_status_groups.name in ("Выкуплен","Оплачен") then 1 else 0 end) as buy_count,
-     sum(case when a_status_groups.name in ("Возврат") then 1 else 0 end) as ret_count,
-     sum(case when a_status_groups.name="Отмена" then 1 else 0 end) as cancel_count, 
-     sum(case when a_status_groups.name="Холд" then 1 else 0 end) as hold_count,
-     case when sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) == 0 then 0 else round((sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end)+0.0)/sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end),0) end as ch,
-     sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end) as approve_sum'
-    )
+   .select('strftime( "%W", dt ) as dt1,' + query)
+   .where("a_crm_users.is_active='t' and a_crm_users.is_manager='t' #{p_date1} #{p_date2} #{p_managers} #{p_shops}"  )
+   .group('dt1', 'shop', 'manager' )
+   .order('dt1', 'manager', 'shop' )
+  }
+
+  scope :salary_report_month, -> (p_date1, p_date2, p_managers, p_shops ) {
+    joins(:a_status_group)
+   .joins(:a_crm_shop)
+   .joins(:a_crm_user)
+   .select('strftime( "%m", dt ) as dt1,' + query)
+   .where("a_crm_users.is_active='t' and a_crm_users.is_manager='t' #{p_date1} #{p_date2} #{p_managers} #{p_shops}"  )
+   .group('dt1', 'shop', 'manager' )
+   .order('dt1', 'manager', 'shop' )
+  }
+  
+  scope :salary_report_total, -> (p_date1, p_date2, p_managers, p_shops ) {
+    joins(:a_status_group)
+   .joins(:a_crm_shop)
+   .joins(:a_crm_user)
+   .select(query)
    .where("a_crm_users.is_active='t' and a_crm_users.is_manager='t' #{p_date1} #{p_date2} #{p_managers} #{p_shops}"  )
    .group('shop', 'manager' )
    .order('manager', 'shop' )

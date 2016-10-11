@@ -1,3 +1,5 @@
+gd = []
+
 calc = (item) ->
   ap = 100*item.approve_count/item.total_count
   bp = 0
@@ -94,13 +96,39 @@ render_tbl = (data, t, it, v) ->
           last = group
       return
   return
+
+render_gr = ->
+  $('#graph').html('')
+  ms = $('select[name=ms]').val()
+  ss = $('select[name=ss]').val()
+  p = $('select[name=p]').val()
+  if ms && p && ss
+    d1 = _.map _.where(gd, shop:ss), (item) ->
+      _.pick(item, 'dt1','manager', p)    
+    d2 = _.groupBy(d1, 'dt1');
+    d = []
+    Object.keys(d2).forEach (key, index) ->
+      d3 = _.object(_.pluck(d2[key],'manager'), _.pluck(d2[key], p))
+      _.extend(d3, {dt: key})
+      d.push(d3)
+  
+    Morris.Line
+      element: graph
+      data: d
+      xkey: 'dt'
+      ykeys: ms
+      labels: ms
+      lineWidth: 2
+      parseTime: false
+      xLabelAngle:90
+  return
   
 render_all = ->
   url_p = "?date1="+$('input[name=date1]').val()+
           "&date2="+$('input[name=date2]').val()+
           "&managers="+$('select[name=managers]').val()+
           "&shops="+$('select[name=shops]').val()
-  $.ajax(url: "salary/ex2" + url_p).done (data) ->
+  $.ajax(url: "salary/ex_total" + url_p).done (data) ->
     t = data
     $.map data, (item) ->
       calc item
@@ -110,8 +138,17 @@ render_all = ->
     [{el: '#output1', group_col: 0, columns: columns_, gr: 'manager'}, {el: '#output2', group_col: 1, columns: columns_, gr: 'shop'}].forEach (it) ->
       render_tbl(data, t, it, 0)
     return
-  
-  $.ajax(url: "salary/ex" + url_p).done (data) ->
+    
+  detail = $('select[name=detail]').val()
+  if detail == 'week'
+    url = 'ex_week'
+  else if detail == 'month'
+    url = 'ex_month'
+  else
+    url = 'ex_day'
+    
+  $.ajax(url: 'salary/' + url + url_p).done (data) ->
+    gd = data
     t = data
     $.map data, (item) ->
       calc item
@@ -119,6 +156,7 @@ render_all = ->
       _.values(_.omit(item, 'id', 'approve_sum'))
  
     render_tbl(data, t, {el: '#output', group_col: 0, columns: columns, gr: 'date'}, 1)
+    render_gr()
     return
 
   return
@@ -151,6 +189,10 @@ $('.index.admin_salary').ready ->
     render_all()
     return 
 
+  $('#update_gr').click ->
+    render_gr()
+    return
+    
   $('#curr').click ->
     d = new Date
     curr_date = d.getDate()

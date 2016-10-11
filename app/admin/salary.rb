@@ -1,7 +1,7 @@
 ActiveAdmin.register_page "Salary" do
 
   menu parent: "Reports", label: "Статистика продаж и начисления ЗП"
-  
+
   content title: 'Статистика продаж и начисления ЗП' do
     panel "Filters" do
       columns do
@@ -14,7 +14,19 @@ ActiveAdmin.register_page "Salary" do
           end
           span id:"prev" do
             'предыдущий'
-          end        
+          end
+          br
+          select name:"detail", style:"width:350px;", class:"chosen-select" do
+            [
+              { title: 'По дням',    v: 'day' },
+              { title: 'По неделям', v: 'week' },
+              { title: 'По месяцам', v: 'month'},
+            ].each do |p|
+              option value: p[:v] do
+                p[:title]
+              end
+            end          
+          end          
         end
         column span:2 do
           if current_a_admin_user.admin?
@@ -40,6 +52,7 @@ ActiveAdmin.register_page "Salary" do
               end          
             end
           end
+
           button id: 'update' do
             'Update'
           end        
@@ -48,6 +61,55 @@ ActiveAdmin.register_page "Salary" do
 
 
     end
+    
+    if current_a_admin_user.admin?
+      panel "График" do
+        select name:"ms", 'data-placeholder':"Менеджеры...", style:"width:350px;", multiple:true, class:"chosen-select" do
+          manager = ACrmUser.active_managers.each do |manager|
+            option value: manager.name do
+              manager.name
+            end
+          end
+        end
+        
+        select name:"ss", 'data-placeholder':"Магазины...", style:"width:350px;", class:"chosen-select" do
+          ACrmShop.active.each do |shop|
+            option value: shop.name do
+              shop.name
+            end          
+          end
+        end
+          
+        select name:"p", 'data-placeholder':"Параметр...", style:"width:350px;", class:"chosen-select" do
+          [
+            { title: 'Всего заказов', v: 'total_count' },
+            { title: 'Апрув',         v: 'approve_count' },
+            { title: 'Выкуплен',      v: 'buy_count'},
+            { title: 'Возврат',       v: 'ret_count' },
+            { title: 'Отмена',        v: 'cancel_count' },
+            { title: 'Холд',          v: 'hold_count' },
+            { title: 'Ср.чек',        v: 'ch' },
+            { title: 'Апрув(%)',      v: 'ap' },
+            { title: 'Выкуплен(%)',   v: 'bp' },
+            { title: 'Возврат(%)',    v: 'rp' },
+            { title: 'Выполнен(%)',   v: 'brp' },
+            { title: 'Опл/заказ',     v: 'z' },
+            { title: 'Оплата',        v: 'z_total' }
+          ].each do |p|
+            option value: p[:v] do
+              p[:title]
+            end
+          end          
+        end
+          
+  
+        button id: 'update_gr' do
+          'Update'
+        end  
+        div id: 'graph'
+      end    
+    end
+    
     panel "Свод по менеджерам" do
       table id:'output1', class:"compact"
     end
@@ -64,16 +126,26 @@ ActiveAdmin.register_page "Salary" do
     
   end
 
-  page_action :ex do 
+  page_action :ex_day do 
     set_filter
-    render json: ACrmOrder.report3(@p_date1, @p_date2, @p_managers, @p_shops)
+    render json: ACrmOrder.salary_report_day(@p_date1, @p_date2, @p_managers, @p_shops)
+  end 
+
+  page_action :ex_week do 
+    set_filter
+    render json: ACrmOrder.salary_report_week(@p_date1, @p_date2, @p_managers, @p_shops)
   end
 
-  page_action :ex2 do 
+  page_action :ex_month do 
     set_filter
-    render json: ACrmOrder.report4(@p_date1, @p_date2, @p_managers, @p_shops)
-  end  
+    render json: ACrmOrder.salary_report_month(@p_date1, @p_date2, @p_managers, @p_shops)
+  end
 
+  page_action :ex_total do 
+    set_filter
+    render json: ACrmOrder.salary_report_total(@p_date1, @p_date2, @p_managers, @p_shops)
+  end 
+  
   controller do
     def set_filter
       @p_date1 = params[:date1].to_s==='' ? "" : "and date(a_crm_orders.dt)>='#{DateTime.parse(params[:date1]).utc.to_date}'"
