@@ -118,8 +118,8 @@ render_gr_distribution = (data) ->
   return
   
 render_all = ->
-  if not $('select[name=shops]').val()
-    $('select[name=shops]').prop('selected', true);
+  if !$('select[name=shops]').val()
+    $('select[name=shops] option').prop('selected', true);
 
   url_p = "?date1="+$('input[name=date1]').val()+
           "&date2="+$('input[name=date2]').val()+
