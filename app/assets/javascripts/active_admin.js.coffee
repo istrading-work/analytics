@@ -8,5 +8,8 @@
 #= require test
 #= require buyout
 #= require salary
+#= require sales
+#= require buyout2
+#= require rating
 #= require jquery.dataTables.min
 #= require dataTables.jqueryui.min

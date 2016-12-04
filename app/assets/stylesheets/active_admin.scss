@@ -21,9 +21,24 @@
 @import "jquery.dataTables.min";
 @import "dataTables.jqueryui.min";
 
+@font-face {
+    font-family: 'Roboto Condensed';
+    src: url('Roboto-Condensed.ttf') format('truetype'),
+}
 
 .output { 
   background: white;  
+}
+
+table.dataTable.compact thead th {
+    padding: 1px;
+    font-size: 9px;
+    font-family: Roboto Condensed;
+}
+
+table.dataTable.compact tbody td {
+    padding: 1px;
+    font-family: Roboto Condensed;
 }
 
 table.dataTable tbody tr.group {
@@ -41,3 +56,21 @@ table.dataTable tbody tr.group:hover {
   cursor: pointer;
   border-bottom: 1px dotted black;
 }
+
+table.dataTable.rating tbody td {
+  text-align: center;
+}
+
+table.dataTable.rating tbody td:first-child {
+  text-align: left;
+}
+
+table.dataTable.rating thead th {
+  text-align: center;
+}
+
+table.dataTable.rating thead th:first-child {
+  text-align: left;
+}
+
+.dataTables_filter { visibility: hidden;}
