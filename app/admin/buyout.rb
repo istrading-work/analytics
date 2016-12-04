@@ -51,8 +51,8 @@ ActiveAdmin.register_page "Buyout" do
       if params[:date1].nil? && params[:date2].nil? && params[:delivery_types]==='null' && params[:shops]==='null'
         render json: ACrmHistory.report1(status1, status2)
       else
-        p_date1 = params[:date1].to_s==='' ? "" : "and o.dt>='#{params[:date1]}'"
-        p_date2 = params[:date2].to_s==='' ? "" : "and o.dt<='#{params[:date2]}'"
+        p_date1 = params[:date1].to_s==='' ? "" : "and date(o.dt)>='#{params[:date1]}'"
+        p_date2 = params[:date2].to_s==='' ? "" : "and date(o.dt)<='#{params[:date2]}'"
         p_delivery_types = params[:delivery_types]==='null' ? "" : "and o.a_crm_delivery_type_id in (#{params[:delivery_types]})"
         p_shops = params[:shops]==='null' ? "" : "and o.a_crm_shop_id in (#{params[:shops]})"
         render json: ACrmHistory.report2(status1, status2, p_date1, p_date2, p_delivery_types, p_shops)

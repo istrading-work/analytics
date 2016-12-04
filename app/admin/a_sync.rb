@@ -13,8 +13,7 @@ ActiveAdmin.register ASync do
       end
     end
     column 'Прогресс', :p do |s|
-      s.total_pages  ? (100* s.page / s.total_pages).round(0).to_s + '%' : (s.total_orders ? (100* s.order_index / s.total_orders).round(0).to_s + '%' : s.status ? '100%': '')
-            
+     s.total_pages && s.total_pages>0  ? (100* s.page / s.total_pages).round(0).to_s + '%' : (s.total_orders && s.total_orders>0 ? (100* s.order_index / s.total_orders).round(0).to_s + '%' : s.status ? '100%': '')           
     end
     column 'Старт', :created_at
     column 'Стоп', :updated_at
