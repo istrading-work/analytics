@@ -16,6 +16,7 @@ ActiveAdmin.register_page "Salary" do
             'предыдущий'
           end
           br
+          br
           select name:"detail", style:"width:350px;", class:"chosen-select" do
             [
               { title: 'По дням',    v: 'day' },
@@ -26,7 +27,11 @@ ActiveAdmin.register_page "Salary" do
                 p[:title]
               end
             end          
-          end          
+          end
+          br
+          br
+          input type:"text", name:'ch1', id:"ch1", placeholder:"Чек заказов с..."
+          input type:"text", name:'ch2', id:"ch2", placeholder:"Чек заказов по..."          
         end
         column span:2 do
           if current_a_admin_user.admin?
@@ -39,10 +44,19 @@ ActiveAdmin.register_page "Salary" do
             end
           else
             select name:"managers", 'data-placeholder':"Менеджеры...", style:"width:350px;", multiple:true, class:"chosen-select", disabled:true do
-              manager = ACrmUser.find_by(email: current_a_admin_user.email)
-              option value:"'#{manager.id}'", selected:true do
-                manager.name
-              end          
+              ACrmUser.active_managers.each do |manager|
+                option value:"'#{manager.id}'" do
+                  manager.name
+                end          
+              end
+              #manager = ACrmUser.find_by(email: current_a_admin_user.email)
+              #option value:"'#{manager.id}'", selected:true do
+              #  manager.name
+              #end
+            end
+            manager = ACrmUser.find_by(email: current_a_admin_user.email)
+            div id: 'manager_name', hidden:true do
+              manager.name
             end
           end
           select name:"shops", 'data-placeholder':"Магазины...", style:"width:350px;", multiple:true, class:"chosen-select" do
@@ -61,8 +75,12 @@ ActiveAdmin.register_page "Salary" do
 
 
     end
-    
+
     if current_a_admin_user.admin?
+      panel "График распределения кол-во заказов = func (чек)" do
+        div id: 'graph_distribution'
+      end
+    
       panel "График" do
         select name:"ms", 'data-placeholder':"Менеджеры...", style:"width:350px;", multiple:true, class:"chosen-select" do
           manager = ACrmUser.active_managers.each do |manager|
@@ -84,13 +102,14 @@ ActiveAdmin.register_page "Salary" do
           [
             { title: 'Всего заказов', v: 'total_count' },
             { title: 'Апрув',         v: 'approve_count' },
-            { title: 'Выкуплен',      v: 'buy_count'},
+            { title: 'Выкуп',      v: 'buy_count'},
             { title: 'Возврат',       v: 'ret_count' },
             { title: 'Отмена',        v: 'cancel_count' },
             { title: 'Холд',          v: 'hold_count' },
             { title: 'Ср.чек',        v: 'ch' },
+            { title: 'Ср.чек выкуп',  v: 'bch' },
             { title: 'Апрув(%)',      v: 'ap' },
-            { title: 'Выкуплен(%)',   v: 'bp' },
+            { title: 'Выкуп(%)',   v: 'bp' },
             { title: 'Возврат(%)',    v: 'rp' },
             { title: 'Выполнен(%)',   v: 'brp' },
             { title: 'Опл/заказ',     v: 'z' },
@@ -113,7 +132,7 @@ ActiveAdmin.register_page "Salary" do
     panel "Свод по менеджерам" do
       table id:'output1', class:"compact"
     end
-    
+
     if current_a_admin_user.admin?
       panel "Свод по магазинам" do
         table id:'output2', class:"compact"
@@ -128,30 +147,37 @@ ActiveAdmin.register_page "Salary" do
 
   page_action :ex_day do 
     set_filter
-    render json: ACrmOrder.salary_report_day(@p_date1, @p_date2, @p_managers, @p_shops)
+    render json: ACrmOrder.salary_report_day(@p_date1, @p_date2, @p_managers, @p_shops, @p_ch1, @p_ch2)
   end 
 
   page_action :ex_week do 
     set_filter
-    render json: ACrmOrder.salary_report_week(@p_date1, @p_date2, @p_managers, @p_shops)
+    render json: ACrmOrder.salary_report_week(@p_date1, @p_date2, @p_managers, @p_shops, @p_ch1, @p_ch2)
   end
 
   page_action :ex_month do 
     set_filter
-    render json: ACrmOrder.salary_report_month(@p_date1, @p_date2, @p_managers, @p_shops)
+    render json: ACrmOrder.salary_report_month(@p_date1, @p_date2, @p_managers, @p_shops, @p_ch1, @p_ch2)
   end
 
   page_action :ex_total do 
     set_filter
-    render json: ACrmOrder.salary_report_total(@p_date1, @p_date2, @p_managers, @p_shops)
+    render json: ACrmOrder.salary_report_total(@p_date1, @p_date2, @p_managers, @p_shops, @p_ch1, @p_ch2)
+  end 
+
+  page_action :ex_distribution do 
+    set_filter
+    render json: ACrmOrder.distribution(@p_date1, @p_date2, @p_managers, @p_shops, @p_ch1, @p_ch2)
   end 
   
   controller do
     def set_filter
-      @p_date1 = params[:date1].to_s==='' ? "" : "and date(a_crm_orders.dt)>='#{DateTime.parse(params[:date1]).utc.to_date}'"
-      @p_date2 = params[:date2].to_s==='' ? "" : "and date(a_crm_orders.dt)<='#{DateTime.parse(params[:date2]).utc.to_date}'"
+      @p_date1 = params[:date1].to_s==='' ? "" : "and a_crm_orders.dt>='#{Time.parse(params[:date1]).beginning_of_day.utc}'"
+      @p_date2 = params[:date2].to_s==='' ? "" : "and a_crm_orders.dt<='#{Time.parse(params[:date2]).end_of_day.utc}'"
       @p_managers = params[:managers]==='null' ? "" : "and a_crm_orders.a_crm_user_id in (#{params[:managers]})"
       @p_shops = params[:shops]==='null' ? "" : "and a_crm_orders.a_crm_shop_id in (#{params[:shops]})"
+      @p_ch1 = params[:ch1].to_s==='' ? "" : "and a_crm_orders.summ-a_crm_orders.delivery_cost>=#{params[:ch1]}"
+      @p_ch2 = params[:ch2].to_s==='' ? "" : "and a_crm_orders.summ-a_crm_orders.delivery_cost<=#{params[:ch2]}"
     end
   end
   
