@@ -68,7 +68,7 @@ class SyncCrm
         item['is_active'] = response_has_only_active_items ? true : item['is_active']
         @model.find_or_initialize_by(code: item['code']).update_attributes!(item)
       end
-
+      true
     end
 
     def sync_collection(filter = nil, limit = 100, page = 1)
@@ -76,32 +76,35 @@ class SyncCrm
         response = @client.method(@retailcrm_api_method).call(filter, limit, page)
         return false unless response.is_successfull? && !response.response.empty?
         get_items(response)
-       
         @items.each do |item|
           if @api_method==='history'
             unless @model.exists?(id: item['id'])
               unless @model.exists?(a_crm_order_id: item['a_crm_order_id'], a_crm_status_id: item['a_crm_status_id'])
                 @model.find_or_initialize_by(id: item['id']).update_attributes!(item)
               else 
-                #open('myfile.out', 'a') do |f|
-                #  f.puts "#{item['a_crm_order_id']} - #{item['a_crm_status_id']}"
-                #end
                 params = {}
                 params['last_updated_at']=item['dt']
                 @model.find_by(a_crm_order_id: item['a_crm_order_id'], a_crm_status_id: item['a_crm_status_id']).update_attributes!(params)
               end
             end
+          elsif @api_method==='orders'
+            item["a_crm_user_id"] = 9999 if item["a_crm_user_id"].nil?
+            @model.find_or_initialize_by(id: item['id']).update_attributes!(item)
+          elsif @api_method==='users'
+            item["first_name"] = '~' if item["first_name"].nil?
+            item["last_name"] = '~' if item["last_name"].nil?
+            @model.find_or_initialize_by(id: item['id']).update_attributes!(item)
           else
             @model.find_or_initialize_by(id: item['id']).update_attributes!(item)
           end
         end
-
         totalPageCount = response.response['pagination']['totalPageCount']
-        if @api_method != 'history'
-          print "\rPage ",page, "/", totalPageCount," ", response.response['pagination']['totalCount']
-        end
+        totalCount = response.response['pagination']['totalCount']
+        print "\rPage ",page, "/", totalPageCount," ", totalCount
+        ASync.where(kind: @api_method).last.update_attributes!(page: page, total_pages: totalPageCount)
         page = page + 1
       end while (page <= totalPageCount)
+      true
     end
 
     def get_items(response)
@@ -111,6 +114,7 @@ class SyncCrm
       items_raw.method(iterator).call do |item|
         if @api_method==='history'
           next if item['field']!='status'
+          next if ACrmShop.active.find_by(code: item['order']['site']).nil?
         end
         params = {}
         @selected_params.each do |k,v|
