@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161009061450) do
+ActiveRecord::Schema.define(version: 20161118025450) do
 
   create_table "a_admin_users", force: :cascade do |t|
     t.string   "email",                  default: "",    null: false
@@ -26,6 +26,7 @@ ActiveRecord::Schema.define(version: 20161009061450) do
     t.datetime "created_at",                             null: false
     t.datetime "updated_at",                             null: false
     t.boolean  "admin",                  default: false
+    t.boolean  "partner",                default: false
     t.index ["email"], name: "index_a_admin_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_a_admin_users_on_reset_password_token", unique: true
   end
@@ -137,6 +138,13 @@ ActiveRecord::Schema.define(version: 20161009061450) do
     t.datetime "created_at",     null: false
     t.datetime "updated_at",     null: false
     t.index ["a_crm_order_id"], name: "index_a_syncs_on_a_crm_order_id"
+  end
+
+  create_table "a_user_shops", force: :cascade do |t|
+    t.integer "a_admin_user_id", null: false
+    t.string  "a_crm_shop_id",   null: false
+    t.index ["a_admin_user_id"], name: "index_a_user_shops_on_a_admin_user_id"
+    t.index ["a_crm_shop_id"], name: "index_a_user_shops_on_a_crm_shop_id"
   end
 
   create_table "active_admin_comments", force: :cascade do |t|

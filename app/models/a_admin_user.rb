@@ -22,4 +22,8 @@ class AAdminUser < ApplicationRecord
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, 
          :recoverable, :rememberable, :trackable, :validatable
+
+  has_many :a_user_shops	
+  has_many :a_crm_shops, through: :a_user_shops
+ 
 end
