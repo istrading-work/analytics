@@ -23,7 +23,6 @@ ActiveAdmin.register_page "Rating" do
     end
     
   end
-
   page_action :ex_curr do 
     p = Period.new
     render json: ACrmUser.rate(p.begin.to_s, p.end.to_s)

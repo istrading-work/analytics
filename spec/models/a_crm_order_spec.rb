@@ -15,6 +15,9 @@
 #  a_crm_user_id          :integer
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
+#  track_pochta           :string
+#  post_status            :string
+#  post_address           :string
 #
 
 require 'rails_helper'

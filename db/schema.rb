@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161118025450) do
+ActiveRecord::Schema.define(version: 20161218030829) do
 
   create_table "a_admin_users", force: :cascade do |t|
     t.string   "email",                  default: "",    null: false
@@ -65,6 +65,9 @@ ActiveRecord::Schema.define(version: 20161118025450) do
     t.integer  "a_crm_user_id"
     t.datetime "created_at",                                      null: false
     t.datetime "updated_at",                                      null: false
+    t.string   "track_pochta"
+    t.string   "post_status"
+    t.string   "post_address"
     t.index ["a_crm_delivery_type_id"], name: "index_a_crm_orders_on_a_crm_delivery_type_id"
     t.index ["a_crm_shop_id"], name: "index_a_crm_orders_on_a_crm_shop_id"
     t.index ["a_crm_status_id"], name: "index_a_crm_orders_on_a_crm_status_id"
@@ -111,6 +114,19 @@ ActiveRecord::Schema.define(version: 20161118025450) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["id"], name: "index_a_crm_users_on_id", unique: true
+  end
+
+  create_table "a_post_histories", force: :cascade do |t|
+    t.datetime "dt"
+    t.string   "status"
+    t.string   "pd_index"
+    t.string   "pd_desc"
+    t.integer  "op_type"
+    t.integer  "op_attr"
+    t.integer  "a_crm_order_id"
+    t.datetime "created_at",     null: false
+    t.datetime "updated_at",     null: false
+    t.index ["a_crm_order_id"], name: "index_a_post_histories_on_a_crm_order_id"
   end
 
   create_table "a_status_groups", force: :cascade do |t|

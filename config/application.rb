@@ -13,5 +13,7 @@ module Analytics
     # -- all .rb files in that directory are automatically loaded.
     config.time_zone = 'Moscow'
     config.autoload_paths << "#{Rails.root}/app/values"
+    config.autoload_paths << "#{Rails.root}/app/services"
+    config.autoload_paths << "#{Rails.root}/lib"
   end
 end

@@ -17,9 +17,14 @@ ActiveAdmin.register ACrmOrder do
     column :a_crm_shop
     column :summ
     column :a_crm_user
+    column :a_crm_delivery_type
+    column :track_pochta
+    column :post_status
+    column :post_address
     actions
   end
 
+  filter :id
   filter :num
   filter :dt, label: 'Дата', as: :date_range
   filter :dt_status_updated, label: 'Дата изменения статуса', as: :date_range
@@ -27,6 +32,7 @@ ActiveAdmin.register ACrmOrder do
   filter :a_crm_status
   filter :a_crm_shop
   filter :a_crm_user
+  filter :a_crm_delivery_type
   filter :summ
   
   
@@ -62,7 +68,7 @@ ActiveAdmin.register ACrmOrder do
 
   controller do
     def scoped_collection
-      super.includes :a_status_group, :a_crm_status, :a_crm_status, :a_crm_shop, :a_crm_user
+      super.includes :a_status_group, :a_crm_status, :a_crm_shop, :a_crm_user, :a_crm_delivery_type
     end
   end
 

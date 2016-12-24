@@ -3,6 +3,11 @@ ActiveAdmin.register_page "Salary" do
   menu parent: "Reports", label: "Статистика продаж и начисления ЗП"
 
   content title: 'Статистика продаж и начисления ЗП' do
+    div id:'headerstat', class:'headerstat' do
+      table id:'ht' do
+      end
+    end
+    
     panel "Filters" do
       columns do
         column do
@@ -128,7 +133,46 @@ ActiveAdmin.register_page "Salary" do
         div id: 'graph'
       end    
     end
-    
+=begin
+    panel "Колонки показать/скрыть" do
+      columns = [
+        { title: 'Всего' },
+        { title: 'Апрув' },
+        { title: 'Апрув +' },
+        { title: 'Выкуп' },
+        { title: 'В ПО' },
+        { title: 'Возврат' },
+        { title: 'Отмена' },
+        { title: 'Путь' },
+        { title: 'Принят' },
+        { title: 'Холд' },
+        { title: 'Ср.чек' },
+        { title: 'Ср.чек выкуп' },
+        { title: 'Апрув(%)' },
+        { title: 'Апрув +(%)' },
+        { title: 'Выкуп(%)' },
+        { title: 'Выкуп +(%)' },
+        { title: 'Возврат(%)' },
+        { title: 'Выполнен(%)' },
+        { title: 'Опл/заказ' },
+        { title: 'Оплата' },
+        { title: 'km' },
+        { title: 'ka' },
+        { title: 'ka2' },
+        { title: 'kb' }
+      ]
+      
+      columns.each_with_index do |v,i|
+        input type:"checkbox", checked:true, id:"b#{i}"
+        label for:"b#{i}" do
+          v[:title]
+        end
+      end
+      button id: 'update_col' do
+        'Update'
+      end  
+    end
+=end
     panel "Свод по менеджерам" do
       table id:'output1', class:"compact"
     end

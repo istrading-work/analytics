@@ -15,6 +15,9 @@
 #  a_crm_user_id          :integer
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
+#  track_pochta           :string
+#  post_status            :string
+#  post_address           :string
 #
 
 class ACrmOrder < ApplicationRecord
@@ -27,7 +30,15 @@ class ACrmOrder < ApplicationRecord
   has_one :a_status_group, through: :a_crm_status
   has_one :a_crm_status_group, through: :a_crm_status
   has_many :a_crm_history
-
+  has_many :a_post_history
+  
+  scope :russian_post, -> { where( :a_crm_delivery_type_id => 'russian-post' ) }
+  scope :with_track, -> { where.not( track_pochta: nil ) }
+  scope :in_post, -> {
+    joins(:a_status_group)
+    .where( 'a_status_groups.name' => 'В ПО' )
+  }
+  
   scope :report2, -> {
     joins(:a_status_group)
    .joins(:a_crm_shop)
@@ -44,8 +55,11 @@ query = <<-SQL
   sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) as approve_count,
   sum(case when a_status_groups.name not in ("Холд","Отмена") or a_crm_statuses.crm_group_id="validation" or a_crm_orders.a_crm_status_id = 'cancel-after-complete' then 1 else 0 end) as approve2_count,
   sum(case when a_status_groups.name in ("Выкуплен","Оплачен") then 1 else 0 end) as buy_count,
+  sum(case when a_status_groups.name in ("В ПО") then 1 else 0 end) as po_count,
   sum(case when a_status_groups.name in ("Возврат") then 1 else 0 end) as ret_count,
-  sum(case when a_status_groups.name="Отмена" then 1 else 0 end) as cancel_count, 
+  sum(case when a_status_groups.name="Отмена" then 1 else 0 end) as cancel_count,
+  sum(case when a_status_groups.name in ("В пути") then 1 else 0 end) as pt_count,  
+  sum(case when a_status_groups.name in ("Принят") then 1 else 0 end) as accept_count,  
   sum(case when a_status_groups.name="Холд" then 1 else 0 end) as hold_count, 
   case when sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end) == 0 then 0 else round((sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-a_crm_orders.delivery_cost else 0 end)+0.0)/sum(case when a_status_groups.name not in ("Холд","Отмена") then 1 else 0 end),0) end as ch,
   sum(case when a_status_groups.name not in ("Холд","Отмена") then a_crm_orders.summ-delivery_cost else 0 end) as approve_sum,

@@ -120,7 +120,7 @@ class Retailcrm
 
   ##
   # ===  Edit order
-  # http://www.retailcrm.ru/docs/Developers/ApiVersion3
+  # http://www.retailcrm.ru/docs/Developers/ApiVersion4
   #
   # Example:
   #  >> Retailcrm.orders_edit(order)
@@ -130,10 +130,10 @@ class Retailcrm
   #   order (Array)
   #   site (String)
   def orders_edit(order, site = nil)
-    id = order[:externalId]
+    id = order["id"]
     url = "#{@url}orders/#{id}/edit"
     @params[:order] = order.to_json
-    @params[:site] = site
+    #@params[:site] = site
     make_request(url, 'post')
   end
 
@@ -721,7 +721,6 @@ class Retailcrm
       unless @ids.nil?
         data = data + "&#{@ids}"
       end
-
       request = Net::HTTP::Get.new("#{uri.path}?#{data}")
     end
     response = https.request(request)

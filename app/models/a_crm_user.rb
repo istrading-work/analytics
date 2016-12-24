@@ -59,7 +59,7 @@ class ACrmUser < ApplicationRecord
         koeff = 1
         z_max = 200
         
-        if k == 'Бриджи Hot Shapers'
+        if k == 'Бриджи Hot Shapers (свой офер)' || k == 'Бриджи HS'
           koeff = 1.7
         elsif k == 'Пояс Hot Shaper'
           koeff = 1.5

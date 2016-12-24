@@ -33,7 +33,8 @@ class SyncCrm
                          'dt_status_updated'=>'statusUpdatedAt',
                          'a_crm_delivery_type_id'=>'delivery|code',
                          'delivery_cost'=>'delivery|cost',
-                         'delivery_net_cost'=>'delivery|netCost' 
+                         'delivery_net_cost'=>'delivery|netCost',
+                         'track_pochta'=>'customFields|track_pochta'
                         }],
                         
     'history'       => ['c',:orders_history, 'ACrmHistory', 'history',
@@ -120,7 +121,7 @@ class SyncCrm
         @selected_params.each do |k,v|
           vs = v.nil? ? []: v.split('|')
           if    vs.size==1 then params[k] = item.has_key?(v) ? item[v] : nil
-          elsif vs.size==2 then params[k] = (item.has_key?(vs[0]) && item[vs[0]] && item[vs[0]].has_key?(vs[1])) ? item[vs[0]][vs[1]] : nil
+          elsif vs.size==2 then params[k] = (item.has_key?(vs[0]) && item[vs[0]] && item[vs[0]].is_a?(Hash) && item[vs[0]].has_key?(vs[1])) ? item[vs[0]][vs[1]] : nil
           else  params[k] = nil
           end
         end

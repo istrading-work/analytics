@@ -1,0 +1,57 @@
+br
+br
+div.container
+  div.row
+    div.col-md-6
+      table.table-striped.post-history
+        - @history.each_with_index do |h,i|
+          tr
+            td 
+              =h.dt.strftime('%d-%m-%Y')
+              br
+              =h.dt.strftime('%T')
+            td class=(i==0 ? 'status down' : i==@history.size-1 ? 'status up' : 'status')
+              div class=(h.pd_index=='140961' ? 'icon up' : h.op_type==6 || h.op_type==7 || (h.op_type==8 && h.op_attr==2) ? 'icon delivered' : 'icon')
+            td 
+             =h.status
+             br
+             - hp = "https://gdeposylka.ru/courier/russian-post/#{h.pd_index}"
+             - np = "#{h.pd_index} #{h.pd_desc}"
+             a> href=hp =np
+            td.page-track
+              img src="https://gpcdn.ru/img/icons/128x128/russian-post.png"/
+    div.col-md-6
+      table.table
+        tr
+          td
+            | ID заказа
+          td
+            - ho = "https://reprisa.retailcrm.ru/orders/#{@order.id}/edit"
+            a> href=ho =@order.id
+        tr
+          td 
+            | Номер заказа
+          td = @order.num
+        tr
+          td 
+            | Статус заказа в ЦРМ
+          td = @order.a_crm_status.name
+        tr
+          td
+            | Штрихкод
+           
+          - b="pochta.ru/tracking\##{@order.track_pochta}"
+          td
+            - b="https://pochta.ru/tracking\##{@order.track_pochta}"
+            a> href=b =@order.track_pochta     
+        tr
+          td.info
+            | Текущий статус
+          td.info = @order.post_status
+        tr
+          td.info
+            | Адрес почтового отделения
+          td.info 
+            = @order.post_address
+br
+br

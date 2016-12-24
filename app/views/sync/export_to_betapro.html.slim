@@ -1,0 +1,7 @@
+div.container
+  h3 Экспорт заказов в БетаПро
+  - total_count = "Всего заказов для выгрузки: #{@export_log.count}"
+  p =total_count
+  ul
+    - @export_log.each do |txt|
+      li =txt

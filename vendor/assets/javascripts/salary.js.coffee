@@ -1,4 +1,9 @@
 gd = []
+ttt1  = []
+ttt11  = []
+ttt2 = []
+ttt22 = []
+hidden_cols_g = []#_.range(2, 25);
 
 Date::addDays = (d) ->
   @setDate @getDate() + d
@@ -11,7 +16,10 @@ calc = (item, stat, stat_prev) ->
     bch = item.buy_sum / item.buy_count
   ap = 100*item.approve_count/item.total_count
   a2p = 100*item.approve2_count/item.total_count
-
+  tb = item.po_count + item.buy_count + item.ret_count
+  b2p = 0
+  if tb>0
+    b2p = 100*item.buy_count/tb
   aa = a2p - ap
   a_ave = 0
   a2_ave = 0
@@ -40,32 +48,35 @@ calc = (item, stat, stat_prev) ->
 # a_ave      - б) Средний апрув за период по всем менеджерам
 # aa_ave     - в) Средняя разница между апрувом+ и апрувом по всем менеджерам
 # aa         - г) Разница между апрувом+ и апрувом по вычисляемому менеджеру
-# b_ave_prev - д) Средний выкуп по всем менеджерам за период минус месяц от считаемого
+# b_ave_prev - д) Средний выкуп по всем менеджерам за период минус месяц от считаемого 
 # b_prev     - е) Выкуп по конкретному менеджеру  за период минус месяц от считаемого
  
   k = 1
   z_max = 200
   
-  if item.shop == 'Бриджи Hot Shapers'
-    k = 1.7
-  else if item.shop == 'Пояс Hot Shaper'
+  if item.shop == '№2 Бриджи HS (свой офер)' || item.shop == '№8 Бриджи HS'
     k = 1.5
-  else if item.shop == 'Золотые цепочки'
+  else if item.shop == '№9 Пояс Hot Shaper'
     k = 1.3
+  else if item.shop == '№3 Золотые цепочки'
+    k = 1.2
   else if item.shop == 'Золотые цепочки (женские)'
     k = 1
-  else if item.shop == 'Red Diamond'
-    k = 1.5
+  else if item.shop == '№5 Red Diamond'
+    k = 1.45
   else if item.shop == 'Gelmifort'
     k = 1.4
-  else if item.shop == 'Айфоны'
-    k = 0.5
-    z_max = 135
-  else if item.shop == 'Айфоны 7'
-    k = 0.5
-    z_max = 135
-  else if item.shop == 'Мон. чай - от курения'
-    k = 1.6
+  else if item.shop == '№6 Айфоны'
+    k = 0.25
+    z_max = 100
+  else if item.shop == '№7 Айфоны 7'
+    k = 0.2
+    z_max = 100  
+  else if item.shop == '№4 Бриджи HS Казахстан'
+    k = 0.25
+    z_max = 120
+  else if item.shop == '№1 Мон. чай - от курения'
+    k = 1.55
   
   k = k / 100
   
@@ -100,12 +111,12 @@ calc = (item, stat, stat_prev) ->
     z = z_max
 
   z_total = z*item.approve_count     
-  _.extend(item, { bch:Math.round(bch), ap: parseFloat(ap.toFixed(2)), a2p: parseFloat(a2p.toFixed(2)), bp: parseFloat(bp.toFixed(2)), rp:Math.round(rp), brp:Math.round(brp), z: Math.round(z), z_total: Math.round(z_total), km: parseFloat(km.toFixed(2)), ka: ka.toFixed(2), ka2: ka2.toFixed(2), kb: kb.toFixed(2) })
+  _.extend(item, { bch:Math.round(bch), ap: parseFloat(ap.toFixed(2)), a2p: parseFloat(a2p.toFixed(2)), bp: parseFloat(bp.toFixed(2)), b2p: parseFloat(b2p.toFixed(2)), rp:Math.round(rp), brp:Math.round(brp), z: Math.round(z), z_total: Math.round(z_total), km: parseFloat(km.toFixed(2)), ka: ka.toFixed(2), ka2: ka2.toFixed(2), kb: kb.toFixed(2) })
   return
   
 calc_t = (data, group, v) ->
   sum = {}
-  ['z_total',  'total_count', 'approve_count', 'approve2_count', 'buy_count', 'ret_count', 'hold_count', 'cancel_count', 'approve_sum', 'buy_sum'].forEach (item) ->
+  ['z_total',  'total_count', 'approve_count', 'approve2_count', 'buy_count', 'ret_count', 'hold_count', 'cancel_count', 'approve_sum', 'buy_sum','po_count','pt_count','accept_count'].forEach (item) ->
     sum[item] = _.reduce(_.pluck(data, item), ((memo, s) ->
       memo + s
     ), 0)
@@ -122,10 +133,16 @@ calc_t = (data, group, v) ->
   #  d['km'] > 0
   #)
   
-  if sum['approve_count']>0
-    sum['km'] = Math.round(sum['km']/sum['total_count'])
+  tb = sum['po_count'] + sum['buy_count'] + sum['ret_count']
+  sum['b2p'] = 0
+  if tb>0
+    sum['b2p'] = (100*sum['buy_count']/tb).toFixed(2)
+    
+  if sum['total_count']>0
+    sum['km'] = (sum['km']/sum['total_count']).toFixed(0)
   else
     sum['km'] = 0
+  
   sum['ap'] = parseFloat((100 * sum['approve_count'] / sum['total_count']).toFixed(2))
   sum['a2p'] = parseFloat((100 * sum['approve2_count'] / sum['total_count']).toFixed(2))
   sum['ch'] = 0
@@ -144,7 +161,7 @@ calc_t = (data, group, v) ->
     sum['bch'] = Math.round(sum['buy_sum'] / sum['buy_count'])
   gs = '<td>'
   if v==1 then (gs='<td colspan="2">')
-  it_str = '<tr class="group">'+ gs + group + '</td><td>' + sum['total_count'] + '</td><td>' + sum['approve_count'] + '</td><td>' + sum['approve2_count'] + '</td><td>' + sum['buy_count'] + '</td><td>' + sum['ret_count'] + '</td><td>' + sum['cancel_count'] + '</td><td>' + sum['hold_count'] + '</td><td>' + sum['ch'] + '</td><td>' + sum['bch'] + '</td><td>' + sum['ap'] + '</td><td>' + sum['a2p'] + '</td><td>' + sum['bp'] + '</td><td>' + sum['rp'] + '</td><td>' + sum['brp'] + '</td><td>' + sum['z'] + '</td><td>' + sum['z_total']
+  it_str = '<tr class="group">'+ gs + group + '</td><td>' + sum['total_count'] + '</td><td>' + sum['approve_count'] + '</td><td>' + sum['approve2_count'] + '</td><td>' + sum['buy_count'] + '</td><td>' + sum['po_count'] + '</td><td>' + sum['ret_count'] + '</td><td>' + sum['cancel_count'] + '</td><td>' + sum['pt_count'] + '</td><td>' + sum['accept_count'] + '</td><td>' + sum['hold_count'] + '</td><td>' + sum['ch'] + '</td><td>' + sum['bch'] + '</td><td>' + sum['ap'] + '</td><td>' + sum['a2p'] + '</td><td>' + sum['bp'] + '</td><td>' + sum['b2p'] + '</td><td>' + sum['rp'] + '</td><td>' + sum['brp'] + '</td><td>' + sum['z'] + '</td><td>' + sum['z_total']
   if $('#manager_name').text() == ''
     it_str = it_str + '</td><td colspan="4">' + sum['km'] + '</td></tr>'
   else
@@ -159,14 +176,18 @@ columns = [
   { title: 'Апрув' }
   { title: 'Апрув&nbsp;+' }
   { title: 'Выкуп' }
+  { title: 'В ПО' }
   { title: 'Возврат' }
   { title: 'Отмена' }
+  { title: 'Путь' }
+  { title: 'Принят' }
   { title: 'Холд' }
   { title: 'Ср.чек' }
   { title: 'Ср.чек выкуп' }
   { title: 'Апрув(%)' }
   { title: 'Апрув&nbsp;+(%)' }
   { title: 'Выкуп(%)' }
+  { title: 'Выкуп&nbsp;+(%)' }
   { title: 'Возврат(%)' }
   { title: 'Выполнен(%)' }
   { title: 'Опл/заказ' }
@@ -180,18 +201,19 @@ columns = [
 render_tbl = (data, t, it, v) ->
   m = $('#manager_name').text()
   hidden_cols = [it.group_col]
+  hidden_cols = _.union(hidden_cols, hidden_cols_g)
   if m != ''
     dd=[]
     if it.gr == 'manager' || it.gr == 'shop'
       dd = _.partition(data, (item) ->
         item[0] == m
       )
-      hidden_cols.push(18,19,20,21)
+      hidden_cols.push(22,23,24,25)
     else
       dd = _.partition(data, (item) ->
         item[1] == m
       )  
-      hidden_cols.push(19,20,21,22)
+      hidden_cols.push(23,24,25,26)
     data=dd[0]
   $(it.el).DataTable
     destroy: true
@@ -267,6 +289,13 @@ render_gr_distribution = (data) ->
     lineWidth: 2
     parseTime: false
   return
+
+render_col = ->
+  columns_ = _.rest(columns)
+  [{el: '#output1', group_col: 0, columns: columns_, gr: 'manager'}, {el: '#output2', group_col: 1, columns: columns_, gr: 'shop'}].forEach (it) ->
+    render_tbl(ttt1, ttt11, it, 0)
+  render_tbl(ttt2, ttt22, {el: '#output', group_col: 0, columns: columns, gr: 'date'}, 1)
+  return
   
 render_all = ->
   url_p = "?date1="+$('input[name=date1]').val()+
@@ -339,6 +368,8 @@ render_all = ->
         data = _.map data, (item) ->
           _.values(_.omit(item, 'id', 'approve_sum', 'buy_sum'))
         columns_ = _.rest(columns)
+        ttt1 = data
+        ttt11 = t
         [{el: '#output1', group_col: 0, columns: columns_, gr: 'manager'}, {el: '#output2', group_col: 1, columns: columns_, gr: 'shop'}].forEach (it) ->
           render_tbl(data, t, it, 0)
         return
@@ -354,11 +385,13 @@ render_all = ->
       $.ajax(url: 'salary/' + url + url_p).done (data) ->
         gd = data
         t = data
+        
         $.map data, (item) ->
           calc item, stat, stat_prev
         data = _.map data, (item) ->
           _.values(_.omit(item, 'id', 'approve_sum', 'buy_sum'))
-     
+        ttt2 = data
+        ttt22 = t
         render_tbl(data, t, {el: '#output', group_col: 0, columns: columns, gr: 'date'}, 1)
         render_gr()
         return
@@ -372,6 +405,14 @@ render_all = ->
   return
 
 $('.index.admin_salary').ready ->
+  ['#output','#output1','#output2'].forEach (el) ->
+    $(el).mouseenter ->
+      window.ht = $(this).find( "thead" ).clone()
+      window.ht.appendTo( $(this) ).addClass('headerstat')
+      return
+    $(el).mouseleave ->
+      window.ht.remove()
+      return
   $('#datepicker1').datepicker({ dateFormat: 'yy-mm-dd' })
   $('#datepicker2').datepicker({ dateFormat: 'yy-mm-dd' })
   d = new Date
@@ -398,6 +439,22 @@ $('.index.admin_salary').ready ->
     render_all()
     return 
 
+  $('#update_col').click ->
+    $('#output').html ''
+    $('#output1').html ''
+    $('#output2').html ''
+    render_col()
+    return 
+  
+  _.range(25).forEach (i) ->
+    $('#b'+i).change ->
+      if $(this).is(":checked")
+        hidden_cols_g = _.without(hidden_cols_g, i+2)
+      else
+        hidden_cols_g.push(i+2)
+        hidden_cols_g = _.uniq(hidden_cols_g)
+      return
+    
   $('#update_gr').click ->
     render_gr()
     return

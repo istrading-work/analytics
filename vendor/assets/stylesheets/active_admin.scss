@@ -74,3 +74,10 @@ table.dataTable.rating thead th:first-child {
 }
 
 .dataTables_filter { visibility: hidden;}
+
+.headerstat {
+  position:fixed;
+  top:0;
+  z-index:1000;
+  background: yellow;
+}
